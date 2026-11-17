@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self Live Goal & Learning Command Center</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Connected Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Command Header -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-terminal text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Command Center <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">v2.0 Live</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Target Role: Full-Stack AI Builder + AWS Cloud Engineer</p>
+                </div>
+            </div>
+
+            <!-- Live Clock & Date -->
+            <div class="hidden md:flex items-center space-x-6 text-sm">
+                <div class="text-right">
+                    <div id="live-date" class="text-slate-300 font-medium">Loading date...</div>
+                    <div id="live-clock" class="text-indigo-400 font-mono font-bold text-xs tracking-wider">00:00:00 AM</div>
+                </div>
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add New Goal
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Overall Progress -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 relative overflow-hidden backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mastery Progress</p>
+                        <h3 id="kpi-progress-text" class="text-3xl font-extrabold text-white mt-2">0%</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                        <i class="fa-solid fa-chart-pie text-xl"></i>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-4 overflow-hidden">
+                    <div id="kpi-progress-bar" class="bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Completed Milestones -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Completed Goals</p>
+                        <h3 id="kpi-completed" class="text-3xl font-extrabold text-emerald-400 mt-2">0 / 0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <i class="fa-solid fa-circle-check text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4"><span id="kpi-completed-pct" class="text-emerald-400 font-semibold">0%</span> of total roadmap completed</p>
+            </div>
+
+            <!-- Active / In-Progress -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active / In-Progress</p>
+                        <h3 id="kpi-active" class="text-3xl font-extrabold text-amber-400 mt-2">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-bolt text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-4">Currently being executed</p>
+            </div>
+
+            <!-- Days Left to Next Target -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Next Deadline Countdown</p>
+                        <h3 id="kpi-countdown" class="text-3xl font-extrabold text-cyan-400 mt-2">-- Days</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                        <i class="fa-solid fa-hourglass-half text-xl"></i>
+                    </div>
+                </div>
+                <p id="kpi-countdown-label" class="text-xs text-slate-500 mt-4 truncate">Nearest active goal deadline</p>
+            </div>
+        </div>
+
+        <!-- Controls / Filters & Search Bar -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-sm">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div class="relative flex-1 md:w-80">
+                    <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-500 text-sm"></i>
+                    <input type="text" id="search-input" oninput="filterGoals()" placeholder="Search goals, technologies..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <select id="category-filter" onchange="filterGoals()" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
+                    <option value="ALL">All Categories</option>
+                    <option value="Python">Python</option>
+                    <option value="FullStack & AI">FullStack & AI</option>
+                    <option value="AWS & Cloud">AWS & Cloud</option>
+                    <option value="C++ & DSA">C++ & DSA</option>
+                    <option value="Career & Projects">Career & Projects</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                <button onclick="openModal()" class="md:hidden bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add Goal
+                </button>
+                <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border border-slate-700">
+                    <i class="fa-solid fa-download"></i> Export JSON
+                </button>
+                <button onclick="resetDefaults()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-4 py-2 rounded-xl text-sm font-medium transition-all border border-rose-500/20 flex items-center gap-2" title="Reset to default roadmap">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Goals Table / List Container -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm shadow-xl">
+            <div class="px-6 py-5 border-b border-slate-800 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-400"></i> Roadmap Action Items & Live Goals
+                </h2>
+                <span id="goal-count-badge" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-medium">0 items</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-950/60 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-800">
+                            <th class="py-4 px-6">Status</th>
+                            <th class="py-4 px-6">Goal Title & Details</th>
+                            <th class="py-4 px-6">Category</th>
+                            <th class="py-4 px-6">Target Deadline</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="goals-table-body" class="divide-y divide-slate-800/60 text-sm">
+                        <!-- Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="empty-state" class="hidden py-16 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto text-slate-500 text-2xl mb-4">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3 class="text-slate-300 font-semibold">No goals found</h3>
+                <p class="text-slate-500 text-xs mt-1">Try adjusting your search or category filter.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Add/Edit Goal Modal -->
+    <div id="goal-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-indigo-400"></i> Add New Goal
+                </h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="goal-form" onsubmit="saveGoal(event)" class="space-y-4">
+                <input type="hidden" id="goal-id">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Goal Title *</label>
+                    <input type="text" id="form-title" required placeholder="e.g. Master FastAPI & Build AI Bot" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Category *</label>
+                        <select id="form-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
+                            <option value="Python">Python</option>
+                            <option value="FullStack & AI">FullStack & AI</option>
+                            <option value="AWS & Cloud">AWS & Cloud</option>
+                            <option value="C++ & DSA">C++ & DSA</option>
+                            <option value="Career & Projects">Career & Projects</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Status *</label>
+                        <select id="form-status" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
+                            <option value="Done">Done ✅</option>
+                            <option value="In Progress">In Progress 🔄</option>
+                            <option value="Upcoming">Upcoming ⏳</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Target Deadline Date *</label>
+                    <input type="date" id="form-deadline" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Description / Key Deliverables</label>
+                    <textarea id="form-desc" rows="3" placeholder="Brief details about what needs to be built or learned..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-medium transition-all">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20">Save Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Connected JavaScript File -->
+    <script src="app.js"></script>
+</body>
+</html>

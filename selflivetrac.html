@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self Live Goal & Learning Command Center | Jay Pawar</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e32',
+                            900: '#0f172a',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar for sleek dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* Smooth card transitions */
+        .goal-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .goal-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <!-- Top Navigation / Header Command Bar -->
+    <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                
+                <!-- Brand & Developer Identity -->
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">
+                                Self Live Goal &amp; Learning Command Center
+                            </h1>
+                            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                                Jay Pawar
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+                            Full-Stack AI Builder &amp; AWS Cloud Engineer Roadmap Tracker
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live Clock & Overall Progress Bar -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                    <!-- Live Clock Display -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2 flex items-center gap-3">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <div>
+                            <div id="liveDate" class="text-xs text-slate-400 font-medium">Loading date...</div>
+                            <div id="liveTime" class="text-sm font-bold text-cyan-300 tracking-wide font-mono">--:--:--</div>
+                        </div>
+                    </div>
+
+                    <!-- Overall Progress Pill -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2 min-w-[210px]">
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="text-slate-400 font-medium">Roadmap Mastery</span>
+                            <span id="overallProgressText" class="font-bold text-emerald-400">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="overallProgressBar" class="h-full bg-gradient-to-r from-cyan-500 via-emerald-400 to-violet-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Toast Notification Banner (Replaces alert/confirm) -->
+        <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+        <!-- Custom Confirmation Modal (Replaces window.confirm) -->
+        <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+                <h3 id="confirmTitle" class="text-lg font-bold text-white">Confirm Action</h3>
+                <p id="confirmMessage" class="text-sm text-slate-300 mt-2">Are you sure you want to proceed?</p>
+                <div class="flex items-center justify-end gap-3 mt-6">
+                    <button id="confirmCancelBtn" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+                        Cancel
+                    </button>
+                    <button id="confirmProceedBtn" class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 transition">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Summary KPI Cards -->
+        <section aria-label="Key Performance Indicators" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Goals -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-md flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Milestones</p>
+                    <p id="kpiTotal" class="text-3xl font-extrabold text-white mt-1">0</p>
+                    <p class="text-xs text-slate-500 mt-1">Active roadmap targets</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Completed Goals -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-md flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Completed</p>
+                    <p id="kpiCompleted" class="text-3xl font-extrabold text-emerald-400 mt-1">0</p>
+                    <p class="text-xs text-emerald-500/80 mt-1">Verified &amp; mastered</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- In Progress / Upcoming -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-md flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">In Progress &amp; Pending</p>
+                    <p id="kpiInProgress" class="text-3xl font-extrabold text-violet-400 mt-1">0</p>
+                    <p class="text-xs text-violet-400/80 mt-1">Currently building</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Urgent / Overdue Deadlines -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-md flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Urgent / Due Soon</p>
+                    <p id="kpiUrgent" class="text-3xl font-extrabold text-amber-400 mt-1">0</p>
+                    <p class="text-xs text-amber-500/80 mt-1">Due within 5 days or overdue</p>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Add / Edit Goal Form Card -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-800">
+                <div>
+                    <h2 id="formHeading" class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                        Add New Learning Milestone / Self Goal
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Define what you need to learn, build, or complete by a strict target date.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="exportJsonBtn" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export JSON
+                    </button>
+                    <button type="button" id="resetDefaultBtn" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-800/60 transition">
+                        Reset Default Roadmap
+                    </button>
+                </div>
+            </div>
+
+            <form id="goalForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <input type="hidden" id="editGoalId" value="">
+
+                <!-- Goal Title -->
+                <div class="md:col-span-5">
+                    <label for="goalTitle" class="block text-xs font-semibold text-slate-300 mb-1.5">Goal / Learning Topic Title *</label>
+                    <input type="text" id="goalTitle" required placeholder="e.g., Python Step 4-9 & FastAPI Backend"
+                        class="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-sm text-white px-3.5 py-2.5 outline-none transition">
+                </div>
+
+                <!-- Category -->
+                <div class="md:col-span-2">
+                    <label for="goalCategory" class="block text-xs font-semibold text-slate-300 mb-1.5">Domain / Stack</label>
+                    <select id="goalCategory"
+                        class="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-sm text-white px-3 py-2.5 outline-none transition">
+                        <option value="Python">Python</option>
+                        <option value="AI/GenAI">AI / GenAI</option>
+                        <option value="AWS Cloud">AWS Cloud</option>
+                        <option value="DSA/C++">DSA / C++</option>
+                        <option value="Full-Stack Web">Full-Stack Web</option>
+                        <option value="Personal/Career">Personal / Career</option>
+                    </select>
+                </div>
+
+                <!-- Target Deadline Date -->
+                <div class="md:col-span-2">
+                    <label for="goalDeadline" class="block text-xs font-semibold text-slate-300 mb-1.5">Target Date *</label>
+                    <input type="date" id="goalDeadline" required
+                        class="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-sm text-white px-3 py-2.5 outline-none transition [color-scheme:dark]">
+                </div>
+
+                <!-- Priority -->
+                <div class="md:col-span-1.5 sm:col-span-6 md:col-span-1">
+                    <label for="goalPriority" class="block text-xs font-semibold text-slate-300 mb-1.5">Priority</label>
+                    <select id="goalPriority"
+                        class="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-sm text-white px-2.5 py-2.5 outline-none transition">
+                        <option value="High">High</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div class="md:col-span-2">
+                    <label for="goalStatus" class="block text-xs font-semibold text-slate-300 mb-1.5">Status</label>
+                    <select id="goalStatus"
+                        class="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 text-sm text-white px-3 py-2.5 outline-none transition">
+                        <option value="In Progress">In Progress</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons Row -->
+                <div class="md:col-span-12 flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <input type="text" id="goalNotes" placeholder="Optional action steps or deliverable notes (e.g., Push mini-projects to GitHub & deploy on EC2)..."
+                        class="flex-1 min-w-[240px] rounded-xl bg-slate-950/70 border border-slate-800 focus:border-cyan-500 text-xs text-slate-200 px-3.5 py-2.5 outline-none transition">
+
+                    <div class="flex items-center gap-2 ml-auto">
+                        <button type="button" id="cancelEditBtn" class="hidden px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                            Cancel Edit
+                        </button>
+                        <button type="submit" id="submitGoalBtn"
+                            class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span id="submitBtnText">Add to Roadmap</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Section 3: Filter & Search Controls -->
+        <section class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4">
+            <!-- Status Filter Pills -->
+            <div class="flex flex-wrap items-center gap-2" id="statusFilterGroup">
+                <button data-status="All" class="status-filter-btn active px-3.5 py-2 rounded-xl text-xs font-semibold bg-cyan-500 text-slate-950 shadow transition">
+                    All Goals
+                </button>
+                <button data-status="In Progress" class="status-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                    In Progress
+                </button>
+                <button data-status="Completed" class="status-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                    Completed
+                </button>
+                <button data-status="Urgent" class="status-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                    Urgent / Overdue
+                </button>
+            </div>
+
+            <!-- Category Dropdown & Search Bar -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <select id="filterCategory"
+                    class="rounded-xl bg-slate-950 border border-slate-700 text-xs font-medium text-slate-200 px-3.5 py-2.5 outline-none focus:border-cyan-500">
+                    <option value="All">All Categories</option>
+                    <option value="Python">Python</option>
+                    <option value="AI/GenAI">AI / GenAI</option>
+                    <option value="AWS Cloud">AWS Cloud</option>
+                    <option value="DSA/C++">DSA / C++</option>
+                    <option value="Full-Stack Web">Full-Stack Web</option>
+                    <option value="Personal/Career">Personal / Career</option>
+                </select>
+
+                <div class="relative min-w-[230px]">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search goals or notes..."
+                        class="w-full rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-500 text-xs text-white pl-9 pr-3.5 py-2.5 outline-none transition">
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Interactive Goal Cards Grid -->
+        <section aria-label="Goals Grid">
+            <div id="goalsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <!-- Cards injected dynamically by JavaScript -->
+            </div>
+
+            <!-- Empty State Message -->
+            <div id="emptyState" class="hidden bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl p-10 text-center">
+                <div class="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-slate-200">No matching milestones found</h3>
+                <p class="text-xs text-slate-400 mt-1">Try adjusting your filters, search query, or add a new target above.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-5 mt-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <p>Built by <span class="text-slate-300 font-semibold">Jay Pawar</span> • Self-Tracking Command Center (Auto-saved in LocalStorage)</p>
+            <p>Mantra: <span class="text-cyan-400 font-medium">Master Python → Integrate AI APIs → Deploy on AWS Cloud</span></p>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        (function () {
+            'use strict';
+
+            const STORAGE_KEY = 'jay_pawar_live_goal_roadmap_v1';
+
+            // Helper to get relative date string (YYYY-MM-DD) from today so default deadlines are always relevant
+            function getRelativeDate(daysOffset) {
+                const date = new Date();
+                date.setDate(date.getDate() + daysOffset);
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            // Pre-populated realistic initial goals tailored for Jay Pawar's Roadmap
+            const DEFAULT_GOALS = [
+                {
+                    id: 'goal-1',
+                    title: 'Python Foundation: Steps 1 to 3 (Setup, Variables, Operators)',
+                    category: 'Python',
+                    deadline: getRelativeDate(-2),
+                    priority: 'High',
+                    status: 'Completed',
+                    notes: 'Completed Visiting Card, Expense Tracker, Laptop Specs & Billing Calculator. Pushed to GitHub.'
+                },
+                {
+                    id: 'goal-2',
+                    title: 'Python 9-Step Curriculum: Complete Steps 4 to 9',
+                    category: 'Python',
+                    deadline: getRelativeDate(14),
+                    priority: 'High',
+                    status: 'In Progress',
+                    notes: 'Master If-Else, Loops, Lists/Dicts, Functions, OOPs & File Handling with folder-wise GitHub commits.'
+                },
+                {
+                    id: 'goal-3',
+                    title: 'FastAPI Backend & Gemini / OpenAI API Integration',
+                    category: 'AI/GenAI',
+                    deadline: getRelativeDate(30),
+                    priority: 'High',
+                    status: 'In Progress',
+                    notes: 'Build REST API endpoints in FastAPI and integrate LLM summarization & RAG chat features.'
+                },
+                {
+                    id: 'goal-4',
+                    title: 'AWS Cloud Deployment (EC2, S3 & Lambda Live Hosting)',
+                    category: 'AWS Cloud',
+                    deadline: getRelativeDate(45),
+                    priority: 'High',
+                    status: 'Pending',
+                    notes: 'Deploy Python AI backend live on AWS EC2 with S3 storage and configure environment secrets.'
+                },
+                {
+                    id: 'goal-5',
+                    title: 'C++ DSA 4-Phase Roadmap (SPPU Syllabus & Interviews)',
+                    category: 'DSA/C++',
+                    deadline: getRelativeDate(25),
+                    priority: 'Medium',
+                    status: 'In Progress',
+                    notes: 'Daily 1-hour practice on Arrays, Linked Lists, Stacks, Queues, Trees & Sorting algorithms.'
+                },
+                {
+                    id: 'goal-6',
+                    title: 'Full-Stack Web & GitHub Portfolio Documentation',
+                    category: 'Full-Stack Web',
+                    deadline: getRelativeDate(3),
+                    priority: 'Medium',
+                    status: 'Completed',
+                    notes: 'Structured README.md dashboards across Python, C, and HTML/CSS repositories.'
+                },
+                {
+                    id: 'goal-7',
+                    title: 'Backend / AI Engineering Internship Portfolio & Outreach',
+                    category: 'Personal/Career',
+                    deadline: getRelativeDate(60),
+                    priority: 'High',
+                    status: 'Pending',
+                    notes: 'Update ATS resume with live AWS-hosted GenAI projects and apply to Pune/Remote startups.'
+                }
+            ];
+
+            // State Variables
+            let goals = [];
+            let activeStatusFilter = 'All';
+            let activeCategoryFilter = 'All';
+            let searchQuery = '';
+
+            // DOM Elements
+            const liveDateEl = document.getElementById('liveDate');
+            const liveTimeEl = document.getElementById('liveTime');
+            const overallProgressText = document.getElementById('overallProgressText');
+            const overallProgressBar = document.getElementById('overallProgressBar');
+
+            const kpiTotal = document.getElementById('kpiTotal');
+            const kpiCompleted = document.getElementById('kpiCompleted');
+            const kpiInProgress = document.getElementById('kpiInProgress');
+            const kpiUrgent = document.getElementById('kpiUrgent');
+
+            const goalForm = document.getElementById('goalForm');
+            const formHeading = document.getElementById('formHeading');
+            const editGoalId = document.getElementById('editGoalId');
+            const goalTitle = document.getElementById('goalTitle');
+            const goalCategory = document.getElementById('goalCategory');
+            const goalDeadline = document.getElementById('goalDeadline');
+            const goalPriority = document.getElementById('goalPriority');
+            const goalStatus = document.getElementById('goalStatus');
+            const goalNotes = document.getElementById('goalNotes');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+            const goalsGrid = document.getElementById('goalsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const statusFilterBtns = document.querySelectorAll('.status-filter-btn');
+            const filterCategorySelect = document.getElementById('filterCategory');
+            const searchInput = document.getElementById('searchInput');
+
+            const exportJsonBtn = document.getElementById('exportJsonBtn');
+            const resetDefaultBtn = document.getElementById('resetDefaultBtn');
+
+            // Custom Modal Elements
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmTitle = document.getElementById('confirmTitle');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+            const confirmProceedBtn = document.getElementById('confirmProceedBtn');
+
+            // Toast Notification Utility
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                const colors = {
+                    success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
+                    info: 'bg-cyan-950/95 border-cyan-500/50 text-cyan-200',
+                    warning: 'bg-amber-950/95 border-amber-500/50 text-amber-200',
+                    danger: 'bg-rose-950/95 border-rose-500/50 text-rose-200'
+                };
+                toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold flex items-center gap-2 transition-all duration-300 ${colors[type] || colors.info}`;
+                toast.innerHTML = `<span>${message}</span>`;
+                container.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(8px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2800);
+            }
+
+            // Custom Confirm Dialog Utility
+            function showConfirmDialog(title, message, onConfirm) {
+                confirmTitle.textContent = title;
+                confirmMessage.textContent = message;
+                confirmModal.classList.remove('hidden');
+                confirmModal.classList.add('flex');
+
+                const cleanup = () => {
+                    confirmModal.classList.add('hidden');
+                    confirmModal.classList.remove('flex');
+                    confirmProceedBtn.onclick = null;
+                    confirmCancelBtn.onclick = null;
+                };
+
+                confirmCancelBtn.onclick = cleanup;
+                confirmProceedBtn.onclick = () => {
+                    cleanup();
+                    onConfirm();
+                };
+            }
+
+            // Live Clock Update
+            function updateLiveClock() {
+                const now = new Date();
+                const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                liveDateEl.textContent = now.toLocaleDateString('en-IN', dateOptions);
+                liveTimeEl.textContent = now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+
+            // Load from localStorage
+            function loadGoals() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            goals = parsed;
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error reading localStorage:', e);
+                }
+                goals = JSON.parse(JSON.stringify(DEFAULT_GOALS));
+                saveGoals();
+            }
+
+            // Save to localStorage
+            function saveGoals() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
+                } catch (e) {
+                    console.error('Error saving to localStorage:', e);
+                }
+            }
+
+            // Calculate Days Remaining & Deadline Metadata
+            function getDeadlineInfo(deadlineStr, status) {
+                if (status === 'Completed') {
+                    return {
+                        label: 'Completed',
+                        badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                        isUrgent: false
+                    };
+                }
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const target = new Date(deadlineStr + 'T00:00:00');
+                const diffTime = target.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0) {
+                    return {
+                        label: `Overdue by ${Math.abs(diffDays)}d`,
+                        badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse',
+                        isUrgent: true
+                    };
+                } else if (diffDays === 0) {
+                    return {
+                        label: 'Due Today!',
+                        badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+                        isUrgent: true
+                    };
+                } else if (diffDays <= 5) {
+                    return {
+                        label: `${diffDays} day${diffDays === 1 ? '' : 's'} left`,
+                        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                        isUrgent: true
+                    };
+                } else {
+                    return {
+                        label: `${diffDays} days left`,
+                        badgeClass: 'bg-slate-800 text-slate-300 border-slate-700',
+                        isUrgent: false
+                    };
+                }
+            }
+
+            // Category Badge Styling
+            function getCategoryStyle(category) {
+                const styles = {
+                    'Python': 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+                    'AI/GenAI': 'bg-violet-500/15 text-violet-300 border-violet-500/30',
+                    'AWS Cloud': 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                    'DSA/C++': 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+                    'Full-Stack Web': 'bg-pink-500/15 text-pink-300 border-pink-500/30',
+                    'Personal/Career': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                };
+                return styles[category] || 'bg-slate-800 text-slate-300 border-slate-700';
+            }
+
+            // Priority Badge Styling
+            function getPriorityStyle(priority) {
+                const styles = {
+                    'High': 'text-rose-400 bg-rose-500/10 border-rose-500/25',
+                    'Medium': 'text-amber-400 bg-amber-500/10 border-amber-500/25',
+                    'Low': 'text-slate-400 bg-slate-800 border-slate-700'
+                };
+                return styles[priority] || styles['Medium'];
+            }
+
+            // Escape HTML to prevent XSS
+            function escapeHTML(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // Update Summary KPIs & Progress Bar
+            function updateKPIs() {
+                const total = goals.length;
+                const completed = goals.filter(g => g.status === 'Completed').length;
+                const inProgressOrPending = total - completed;
+                const urgentCount = goals.filter(g => getDeadlineInfo(g.deadline, g.status).isUrgent).length;
+
+                kpiTotal.textContent = total;
+                kpiCompleted.textContent = completed;
+                kpiInProgress.textContent = inProgressOrPending;
+                kpiUrgent.textContent = urgentCount;
+
+                const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+                overallProgressText.textContent = `${percentage}% (${completed}/${total})`;
+                overallProgressBar.style.width = `${percentage}%`;
+            }
+
+            // Render Goal Cards
+            function renderGoals() {
+                updateKPIs();
+
+                const filtered = goals.filter(goal => {
+                    const deadlineInfo = getDeadlineInfo(goal.deadline, goal.status);
+
+                    // Status filter
+                    if (activeStatusFilter === 'Completed' && goal.status !== 'Completed') return false;
+                    if (activeStatusFilter === 'In Progress' && goal.status === 'Completed') return false;
+                    if (activeStatusFilter === 'Urgent' && !deadlineInfo.isUrgent) return false;
+
+                    // Category filter
+                    if (activeCategoryFilter !== 'All' && goal.category !== activeCategoryFilter) return false;
+
+                    // Search query
+                    if (searchQuery.trim() !== '') {
+                        const q = searchQuery.toLowerCase();
+                        const matchTitle = goal.title.toLowerCase().includes(q);
+                        const matchNotes = (goal.notes || '').toLowerCase().includes(q);
+                        const matchCat = goal.category.toLowerCase().includes(q);
+                        if (!matchTitle && !matchNotes && !matchCat) return false;
+                    }
+
+                    return true;
+                });
+
+                goalsGrid.innerHTML = '';
+
+                if (filtered.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+
+                filtered.forEach(goal => {
+                    const isCompleted = goal.status === 'Completed';
+                    const deadlineInfo = getDeadlineInfo(goal.deadline, goal.status);
+                    const formattedDate = new Date(goal.deadline + 'T00:00:00').toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+
+                    const card = document.createElement('article');
+                    card.className = `goal-card rounded-2xl p-5 border flex flex-col justify-between shadow-lg ${
+                        isCompleted
+                            ? 'bg-slate-900/50 border-emerald-500/30'
+                            : deadlineInfo.isUrgent
+                                ? 'bg-slate-900 border-amber-500/40'
+                                : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                    }`;
+
+                    card.innerHTML = `
+                        <div>
+                            <!-- Top Badges Row -->
+                            <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${getCategoryStyle(goal.category)}">
+                                    ${escapeHTML(goal.category)}
+                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold border ${getPriorityStyle(goal.priority)}">
+                                        ${escapeHTML(goal.priority)}
+                                    </span>
+                                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${deadlineInfo.badgeClass}">
+                                        ${escapeHTML(deadlineInfo.label)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Title -->
+                            <h3 class="text-base font-bold leading-snug ${isCompleted ? 'line-through text-slate-400' : 'text-white'}">
+                                ${escapeHTML(goal.title)}
+                            </h3>
+
+                            <!-- Notes -->
+                            ${goal.notes ? `<p class="text-xs text-slate-400 mt-2 leading-relaxed">${escapeHTML(goal.notes)}</p>` : ''}
+                        </div>
+
+                        <!-- Card Footer: Target Date & Action Buttons -->
+                        <div class="mt-5 pt-3.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                            <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span>Target: <strong class="text-slate-200">${formattedDate}</strong></span>
+                            </div>
+
+                            <div class="flex items-center gap-1.5">
+                                <!-- Toggle Complete Button -->
+                                <button onclick="window.toggleGoalComplete('${goal.id}')" title="${isCompleted ? 'Mark as In Progress' : 'Mark as Completed'}"
+                                    class="p-2 rounded-xl border transition ${
+                                        isCompleted
+                                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                                            : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40'
+                                    }">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Edit Button -->
+                                <button onclick="window.startEditGoal('${goal.id}')" title="Edit Milestone"
+                                    class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Delete Button -->
+                                <button onclick="window.deleteGoal('${goal.id}')" title="Delete Milestone"
+                                    class="p-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-rose-400 hover:border-rose-500/40 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    goalsGrid.appendChild(card);
+                });
+            }
+
+            // Reset Form State
+            function resetForm() {
+                goalForm.reset();
+                editGoalId.value = '';
+                goalDeadline.value = getRelativeDate(7);
+                formHeading.innerHTML = `<span class="w-2 h-2 rounded-full bg-cyan-400"></span> Add New Learning Milestone / Self Goal`;
+                submitBtnText.textContent = 'Add to Roadmap';
+                cancelEditBtn.classList.add('hidden');
+            }
+
+            // Form Submit (Create or Update Goal)
+            goalForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const titleVal = goalTitle.value.trim();
+                const deadlineVal = goalDeadline.value;
+
+                if (!titleVal || !deadlineVal) {
+                    showToast('Please enter both Goal Title and Target Date.', 'warning');
+                    return;
+                }
+
+                const existingId = editGoalId.value;
+                if (existingId) {
+                    // Update existing goal
+                    const index = goals.findIndex(g => g.id === existingId);
+                    if (index !== -1) {
+                        goals[index] = {
+                            ...goals[index],
+                            title: titleVal,
+                            category: goalCategory.value,
+                            deadline: deadlineVal,
+                            priority: goalPriority.value,
+                            status: goalStatus.value,
+                            notes: goalNotes.value.trim()
+                        };
+                        saveGoals();
+                        renderGoals();
+                        resetForm();
+                        showToast('Milestone updated successfully!', 'info');
+                    }
+                } else {
+                    // Create new goal
+                    const newGoal = {
+                        id: 'goal-' + Date.now(),
+                        title: titleVal,
+                        category: goalCategory.value,
+                        deadline: deadlineVal,
+                        priority: goalPriority.value,
+                        status: goalStatus.value,
+                        notes: goalNotes.value.trim()
+                    };
+                    goals.unshift(newGoal);
+                    saveGoals();
+                    renderGoals();
+                    resetForm();
+                    showToast('New milestone added to your roadmap!', 'success');
+                }
+            });
+
+            // Cancel Edit Button
+            cancelEditBtn.addEventListener('click', resetForm);
+
+            // Global Action Handlers for Inline Buttons
+            window.toggleGoalComplete = function (id) {
+                const goal = goals.find(g => g.id === id);
+                if (!goal) return;
+                goal.status = goal.status === 'Completed' ? 'In Progress' : 'Completed';
+                saveGoals();
+                renderGoals();
+                showToast(
+                    goal.status === 'Completed' ? `Completed: "${goal.title}"` : `Reopened: "${goal.title}"`,
+                    goal.status === 'Completed' ? 'success' : 'info'
+                );
+            };
+
+            window.startEditGoal = function (id) {
+                const goal = goals.find(g => g.id === id);
+                if (!goal) return;
+
+                editGoalId.value = goal.id;
+                goalTitle.value = goal.title;
+                goalCategory.value = goal.category;
+                goalDeadline.value = goal.deadline;
+                goalPriority.value = goal.priority;
+                goalStatus.value = goal.status;
+                goalNotes.value = goal.notes || '';
+
+                formHeading.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Editing Milestone`;
+                submitBtnText.textContent = 'Save Changes';
+                cancelEditBtn.classList.remove('hidden');
+
+                goalForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                goalTitle.focus();
+            };
+
+            window.deleteGoal = function (id) {
+                const goal = goals.find(g => g.id === id);
+                if (!goal) return;
+
+                showConfirmDialog(
+                    'Delete Milestone?',
+                    `Are you sure you want to remove "${goal.title}" from your roadmap?`,
+                    () => {
+                        goals = goals.filter(g => g.id !== id);
+                        if (editGoalId.value === id) resetForm();
+                        saveGoals();
+                        renderGoals();
+                        showToast('Milestone deleted.', 'danger');
+                    }
+                );
+            };
+
+            // Filter & Search Listeners
+            statusFilterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    statusFilterBtns.forEach(b => {
+                        b.classList.remove('bg-cyan-500', 'text-slate-950', 'shadow');
+                        b.classList.add('bg-slate-800', 'text-slate-300');
+                    });
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                    btn.classList.add('bg-cyan-500', 'text-slate-950', 'shadow');
+
+                    activeStatusFilter = btn.getAttribute('data-status');
+                    renderGoals();
+                });
+            });
+
+            filterCategorySelect.addEventListener('change', (e) => {
+                activeCategoryFilter = e.target.value;
+                renderGoals();
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderGoals();
+            });
+
+            // Export JSON Button
+            exportJsonBtn.addEventListener('click', () => {
+                const dataStr = JSON.stringify(goals, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `jay_pawar_roadmap_${getRelativeDate(0)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                showToast('Roadmap exported as JSON file!', 'info');
+            });
+
+            // Reset Default Roadmap Button
+            resetDefaultBtn.addEventListener('click', () => {
+                showConfirmDialog(
+                    'Reset to Default Roadmap?',
+                    'This will restore your original AI, Python, AWS Cloud, and DSA milestones. Any custom edits will be overwritten.',
+                    () => {
+                        goals = JSON.parse(JSON.stringify(DEFAULT_GOALS));
+                        saveGoals();
+                        resetForm();
+                        renderGoals();
+                        showToast('Roadmap restored to default milestones.', 'info');
+                    }
+                );
+            });
+
+            // Initialize App on Window Load
+            window.addEventListener('DOMContentLoaded', () => {
+                goalDeadline.value = getRelativeDate(7);
+                updateLiveClock();
+                setInterval(updateLiveClock, 1000);
+                loadGoals();
+                renderGoals();
+            });
+        })();
+    </script>
+</body>
+</html>
